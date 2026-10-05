@@ -280,13 +280,34 @@ def create_app(config: Config | None = None) -> Flask:
             dataset = data_source.load(config)
         except data_source.DatasetMissing as exc:
             return render_template("error.html", message=str(exc), active_tab=""), 500
+
+        # The size of the file, for the data-concerns section at the bottom of
+        # the page.  Read from the data rather than written into the template, so
+        # the figures cannot drift away from what the pages actually show.
+        frame = dataset.frame
+        starts = possession_values.population(frame)
+        saw_a_shot = starts["CF_15"].fillna(0) + starts["CA_15"].fillna(0) > 0
+        # What the two xG models were fitted on: the international games at 5v5.
+        trained_on = possession_values.international_five_on_five(frame)
+
         return render_template(
             "cleaning.html",
             active_tab="cleaning",
             dataset=dataset,
-            columns=len(dataset.frame.columns),
-            receptions=int((dataset.frame["event"] == "Reception").sum()),
+            columns=len(frame.columns),
+            receptions=int((frame["event"] == "Reception").sum()),
             downloads=download_list(),
+            totals={
+                "games": int(
+                    frame.groupby(["game_date", "home_team", "away_team"]).ngroups
+                ),
+                "players": int(frame["player"].nunique()),
+                "goals": int((frame["event"] == "Goal").sum()),
+                "training_goals": int((trained_on["event"] == "Goal").sum()),
+                "shot_attempts": int(frame["event"].isin(data_source.SHOT_EVENTS).sum()),
+                "windows": int(len(starts)),
+                "windows_with_shot": int(saw_a_shot.sum()),
+            },
         )
 
     @app.get("/download/<name>")
