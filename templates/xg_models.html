@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}xG Models &middot; {{ config.app_title_top }} {{ config.app_title_bottom }}{% endblock %}
+
+{% block sidebar_filters %}
+<label class="side-label">Models</label>
+<div class="side-facts">
+  {% for m in models.models %}
+  <div class="side-fact"><span class="k">{{ m.column }}</span><span class="v">{{ "{:,}".format(m.rows) }} shots</span></div>
+  {% endfor %}
+</div>
+
+<div class="side-divider"></div>
+<form method="POST" action="{{ url_for('lock') }}">
+  <button class="dd-btn" type="submit" style="justify-content:center;">Lock this page</button>
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="page-hdr">
+  <div>
+    <div class="page-title">xG Models</div>
+    <div class="page-sub">Two simple expected-goal models, and how far to trust them</div>
+  </div>
+</div>
+
+<div class="flash flash-danger">
+  <strong>These models are built on very little data.</strong>
+  The all-shots model learned from {{ "{:,}".format(models.models[0].rows) }} shots and
+  {{ models.models[0].goals }} goals. Thirty goals spread across four inputs is not much
+  for a model to work with, so the numbers below show it has picked up something
+  real &mdash; not that it measures shot quality precisely. Small differences
+  between players should not be read as meaningful.
+</div>
+
+<div class="section-title">How they are built</div>
+<p class="prose">
+  Expected goals puts a number between 0 and 1 on a shot: how likely it was to
+  become a goal. Both models are plain logistic regressions, built with
+  scikit-learn, and both look at only four things.
+</p>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr><th class="left">Input</th><th class="left">What it is</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="left"><code>shot_distance</code></td><td class="left">How far the puck was from the net, in feet</td></tr>
+      <tr><td class="left"><code>shot_angle</code></td><td class="left">How much of the goal mouth the shooter could see, in degrees</td></tr>
+      <tr><td class="left"><code>traffic</code></td><td class="left">Whether there was traffic in front of the shooter</td></tr>
+      <tr><td class="left"><code>one_timer</code></td><td class="left">Whether the shot came off a one-timer</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p class="prose">
+  The four inputs are measured in very different units, so they are standardised
+  before fitting. Without that, the model's penalty would fall hardest on
+  whichever input happens to be written in the largest numbers, which is
+  distance.
+</p>
+
+<div class="section-title">The two models</div>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr><th class="left">Column</th><th class="left">Trained on</th><th>Shots</th><th>Goals</th></tr>
+    </thead>
+    <tbody>
+      {% for m in models.models %}
+      <tr>
+        <td class="left"><code>{{ m.column }}</code></td>
+        <td class="left">{{ m.trained_on }}</td>
+        <td>{{ "{:,}".format(m.rows) }}</td>
+        <td>{{ m.goals }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<p class="prose">
+  Both are trained only on the international games at 5v5, and only those rows
+  are given a value. The models say nothing about a college game or a power play
+  &mdash; that is deliberate, rather than guessing at situations they were never
+  built for.
+</p>
+
+<div class="section-title">Test results</div>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr><th class="left">Model</th><th>Cross-validated AUC</th></tr>
+    </thead>
+    <tbody>
+      {% for m in models.models %}
+      <tr>
+        <td class="left"><code>{{ m.column }}</code></td>
+        <td>{{ "%.3f"|format(m.auc) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<p class="prose">
+  Measured by five-fold cross-validation, so each score is not the model marking
+  its own homework. 0.5 would be a coin toss and 1.0 would be perfect. With only
+  {{ models.models[0].goals }} goals in the sample these are rough numbers.
+</p>
+
+<div class="section-title">Variable coefficients</div>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr>
+        <th class="left">Input</th>
+        {% for m in models.models %}<th>{{ m.column }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for feature in models.features %}
+      <tr>
+        <td class="left"><code>{{ feature }}</code></td>
+        {% for m in models.models %}
+        {% set weight = (m.weights | selectattr("feature", "equalto", feature) | list | first).weight %}
+        <td class="{% if weight < 0 %}coef-neg{% else %}coef-pos{% endif %}">{{ "%+.3f"|format(weight) }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<p class="prose">
+  Because the inputs are standardised, the weights can be compared with each
+  other: a larger number means the model leans on that input more. The sign is
+  the direction &mdash; distance is negative because a shot from further out is
+  less likely to go in, and the other three are positive.
+</p>
+{% endblock %}

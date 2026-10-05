@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Data Cleaning &middot; {{ config.app_title_top }} {{ config.app_title_bottom }}{% endblock %}
+
+{% block sidebar_filters %}
+<label class="side-label">Dataset</label>
+<div class="side-facts">
+  <div class="side-fact stack"><span class="k">Cleaned file</span><span class="v">{{ dataset.path.name }}</span></div>
+  <div class="side-fact"><span class="k">Rows</span><span class="v">{{ "{:,}".format(dataset.rows) }}</span></div>
+  <div class="side-fact"><span class="k">Columns</span><span class="v">{{ columns }}</span></div>
+  <div class="side-fact"><span class="k">Built</span><span class="v">{{ dataset.modified }}</span></div>
+</div>
+
+<div class="side-divider"></div>
+{% include "_downloads.html" %}
+
+<div class="side-divider"></div>
+<form method="POST" action="{{ url_for('lock') }}">
+  <button class="dd-btn" type="submit" style="justify-content:center;">Lock this page</button>
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="page-hdr">
+  <div>
+    <div class="page-title">Data Cleaning</div>
+    <div class="page-sub">
+      What happens to the raw file, in ten steps
+    </div>
+  </div>
+</div>
+
+<ol class="steps">
+
+  <li>
+    <div class="step-title"><span class="step-num">1</span>Clean the teams</div>
+    <p class="step-body">
+      The three team columns are renamed to <code>home_team</code>,
+      <code>away_team</code> and <code>team</code>, which is easier to work with
+      than the spaced-out names the file uses.
+    </p>
+    <p class="step-body">
+      Olympic team names are shortened to just the nation, because
+      &ldquo;Olympic (Women)&rdquo; is the same for all of them and tells you
+      nothing. <code>Olympic (Women) - Canada</code> becomes <code>Canada</code>,
+      and <code>Olympic Athletes from Russia</code> becomes <code>Russia</code>.
+      The two college teams keep their full names.
+    </p>
+  </li>
+
+  <li>
+    <div class="step-title"><span class="step-num">2</span>Turn the clock into a running total</div>
+    <p class="step-body">
+      The clock counts down from 20:00 and restarts every period, so it cannot be
+      used to ask what happened next. It is replaced with
+      <code>time_elapsed</code>: the number of seconds since the game started.
+      Period 1 runs 0 to 1,200, period 2 runs 1,200 to 2,400, and so on. The
+      column that held the period is now <code>period</code>.
+    </p>
+  </li>
+
+  <li>
+    <div class="step-title"><span class="step-num">3</span>Describe the game from the eventing team's point of view</div>
+    <p class="step-body">
+      Three new columns say who took the event and what the game looked like at
+      that moment. All three are written from the point of view of the team that
+      took the event, so one value means the same thing for both teams:
+    </p>
+    <ul>
+      <li><code>venue</code> &mdash; <code>Home</code> or <code>Away</code>.</li>
+      <li><code>strength_state</code> &mdash; skaters for and against, such as <code>5v4</code>. So <code>5v4</code> is always a power play for the team that took the event, whichever team that is.</li>
+      <li><code>score_state</code> &mdash; the goal difference. <code>+1</code> means the team that took the event was winning by one.</li>
+    </ul>
+    <p class="step-body">
+      The four columns these came from only read correctly for the home team, so
+      they are removed.
+    </p>
+  </li>
+
+  <li>
+    <div class="step-title"><span class="step-num">4</span>Name the shot outcome, and give the receiver a row</div>
+    <p class="step-body">
+      Every shot was called <code>Shot</code>, with the outcome in a separate
+      column. The outcome is now part of the name &mdash; <code>Shot on Net</code>,
+      <code>Missed Shot</code> or <code>Blocked Shot</code> &mdash; so a shot says
+      what happened to it. Goals keep the name <code>Goal</code>.
+    </p>
+    <p class="step-body">
+      A <code>Play</code> is a pass that reached its target. The file credited
+      only the passer, which left the receiver invisible. A <code>Reception</code>
+      row is now added underneath every pass, for the player who received it, at
+      the place they received it. This is why the cleaned file has
+      <strong>{{ "{:,}".format(receptions) }} more rows</strong> than the raw one.
+    </p>
+    <p class="step-body">
+      The remaining column names are tidied up too, to <code>player</code>,
+      <code>player_2</code>, <code>event</code> and <code>detail_1</code> to
+      <code>detail_4</code>.
+    </p>
+  </li>
+
+  <li>
+    <div class="step-title"><span class="step-num">5</span>Put the middle of the rink at zero</div>
+    <p class="step-body">
+      The coordinates are renamed to <code>x1</code>, <code>y1</code> for where
+      the event happened and <code>x2</code>, <code>y2</code> for where a pass
+      was aimed.
+    </p>
+    <p class="step-body">
+      They are also shifted so the middle of the rink is zero: <code>x</code> runs
+      from &minus;100 at your own goal line to +100 at the goal you are attacking,
+      and <code>y</code> runs &minus;42.5 to +42.5 across the ice. Positive x is
+      always the attacking end, whichever team took the event.
+    </p>
+  </li>
+
+  <li>
+    <div class="step-title"><span class="step-num">6</span>Find which rink box each event is in</div>
+    <p class="step-body">
+      The rink is divided into 58 boxes. <code>boxid</code> is the box an event
+      happened in and <code>boxid_2</code> is the box a pass was aimed at.
+    </p>
+    <p class="step-body">
+      Two edge cases need a rule. An event sitting exactly on a blue line counts
+      as being in the end zone rather than the middle, because the blue line is
+      where the end zone begins. An event logged right on the boards, or out in a
+      rounded corner, is put in the nearest box &mdash; a puck is never off the
+      ice.
+    </p>
+  </li>
+
+  <li>
+    <div class="step-title"><span class="step-num">7</span>Mark where a possession starts</div>
+    <p class="step-body">
+      <code>possession_start</code> is <code>1</code> when an event is the moment
+      a player takes control of the puck &mdash; a <code>Puck Recovery</code>, a
+      <code>Reception</code> or a <code>Takeaway</code> &mdash; and
+      <code>0</code> for everything else.
+    </p>
+  </li>
+
+  <li>
+    <div class="step-title"><span class="step-num">8</span>Build the expected-goal models</div>
+    <p class="step-body">
+      Two expected-goal (xG) models are built, both simple logistic regressions.
+      They look at only four things: how far the shot was from the net, how much
+      of the goal mouth the shooter could see, whether there was traffic in
+      front, and whether it was a one-timer.
+    </p>
+    <p class="step-body">
+      <code>xg_all_shots</code> is trained on every shot attempt.
+      <code>xg_on_net</code> is trained only on shots that reached the net. Both
+      are trained on the international games at 5v5, and only those rows are
+      given a value &mdash; the models say nothing about a college game or a
+      power play.
+    </p>
+  </li>
+
+  <li>
+    <div class="step-title"><span class="step-num">9</span>Label the competition</div>
+    <p class="step-body">
+      <code>competition</code> says which tournament each game belongs to:
+      <code>Olympic</code>, <code>NCAA</code>, <code>Rivalry Series</code> or
+      <code>World Championship</code>.
+    </p>
+  </li>
+
+  <li>
+    <div class="step-title"><span class="step-num">10</span>Count the next 15 seconds</div>
+    <p class="step-body">
+      Every possession start and every <code>Zone Entry</code> opens a 15-second
+      window. Everything that happens inside it is counted twice, once for the
+      team that opened the window and once for the other team:
+    </p>
+    <ul>
+      <li><code>CF_15</code> / <code>CA_15</code> &mdash; every shot attempt, on net, missed, blocked or a goal.</li>
+      <li><code>FF_15</code> / <code>FA_15</code> &mdash; the same, but without the blocked ones.</li>
+      <li><code>SF_15</code> / <code>SA_15</code> &mdash; shots that reached the net.</li>
+      <li><code>GF_15</code> / <code>GA_15</code> &mdash; goals.</li>
+      <li><code>xGF_15</code> / <code>xGA_15</code> &mdash; expected goals.</li>
+    </ul>
+    <p class="step-body">
+      A goal, or the end of a period, closes the window early. A goal still
+      counts, because it happened inside the window.
+    </p>
+  </li>
+
+</ol>
+{% endblock %}

@@ -1,0 +1,74 @@
+{# App shell: sidebar, sticky tab row, and the main content area.
+
+   Branding and accent come from `config`, so the shell can be re-skinned
+   without touching markup. #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}{{ page_title }}{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{{ config.favicon_url }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=1" />
+  <style>
+    :root { --accent: {{ config.accent }}; }
+  </style>
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <header class="side-hdr">
+        <div class="hdr-left">
+          <img class="logo" src="{{ config.logo_url }}"
+               alt="{{ config.app_title_top }} {{ config.app_title_bottom }}" />
+          <div class="hdr-titles">
+            <div class="app-title">
+              <div>{{ config.app_title_top }}</div>
+              <div>{{ config.app_title_bottom }}</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="side-divider"></div>
+
+      <div class="side-selectors">
+        {% block sidebar_filters %}{% endblock %}
+      </div>
+    </aside>
+
+    <div class="main-col">
+      <nav class="tabs">
+        {% block top_nav %}
+        <a href="{{ url_for('event_map') }}"
+           class="{% if active_tab == 'event_map' %}active{% endif %}">Event Map</a>
+        <a href="{{ url_for('heat_map') }}"
+           class="{% if active_tab == 'heat_map' %}active{% endif %}">Heat Map</a>
+        <a href="{{ url_for('possession') }}"
+           class="{% if active_tab == 'possession' %}active{% endif %}">Possession Values</a>
+        <a href="{{ url_for('zone_entries_page') }}"
+           class="{% if active_tab == 'zone_entries' %}active{% endif %}">Zone Entries</a>
+        <a href="{{ url_for('cleaning') }}"
+           class="{% if active_tab == 'cleaning' %}active{% endif %}">Data Cleaning</a>
+        <a href="{{ url_for('xg_models') }}"
+           class="{% if active_tab == 'xg' %}active{% endif %}">xG Models</a>
+        {% endblock %}
+      </nav>
+      <main>
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Any side panel slicer reloads the page when it changes.
+    document.querySelectorAll('#slicers select').forEach(function (select) {
+      select.addEventListener('change', function () { select.form.submit(); });
+    });
+  </script>
+</body>
+</html>

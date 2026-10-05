@@ -1,0 +1,62 @@
+{
+  "features": [
+    "shot_distance",
+    "shot_angle",
+    "traffic",
+    "one_timer"
+  ],
+  "models": [
+    {
+      "key": "all_shots",
+      "column": "xg_all_shots",
+      "trained_on": "Every shot attempt: on net, missed, blocked, and goals",
+      "rows": 944,
+      "goals": 30,
+      "auc": 0.858,
+      "weights": [
+        {
+          "feature": "shot_distance",
+          "weight": -1.22
+        },
+        {
+          "feature": "shot_angle",
+          "weight": 0.317
+        },
+        {
+          "feature": "traffic",
+          "weight": 0.168
+        },
+        {
+          "feature": "one_timer",
+          "weight": 0.29
+        }
+      ]
+    },
+    {
+      "key": "on_net",
+      "column": "xg_on_net",
+      "trained_on": "Only shots that reached the net: saved shots and goals",
+      "rows": 417,
+      "goals": 30,
+      "auc": 0.826,
+      "weights": [
+        {
+          "feature": "shot_distance",
+          "weight": -0.96
+        },
+        {
+          "feature": "shot_angle",
+          "weight": 0.406
+        },
+        {
+          "feature": "traffic",
+          "weight": 0.356
+        },
+        {
+          "feature": "one_timer",
+          "weight": 0.319
+        }
+      ]
+    }
+  ]
+}

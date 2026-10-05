@@ -1,0 +1,48 @@
+{# The side panel slicers, shared by the Event Map and Heat Map pages.
+
+   Every slicer is a plain <select> inside one form, and the form submits itself
+   whenever a value changes.  Each one carries an "all" option, except the event
+   slicer, which opens on Play.
+
+   `direction` is only passed by the Heat Map, so the From/To slicer appears on
+   that page and nowhere else. #}
+<form method="get" id="slicers" class="slicers">
+  {% macro slicer(name, label, all_label) %}
+  <label class="side-label" for="sel-{{ name }}">{{ label }}</label>
+  <select class="side-select" name="{{ name }}" id="sel-{{ name }}">
+    <option value="">{{ all_label }}</option>
+    {% for value in available[name] %}
+    <option value="{{ value }}"{% if selected[name] == value %} selected{% endif %}>{{ value }}</option>
+    {% endfor %}
+  </select>
+  {% endmacro %}
+
+  {{ slicer("competition", "Competition", "All competitions") }}
+  {{ slicer("team", "Team", "All teams") }}
+  {{ slicer("player", "Player", "All players") }}
+  {{ slicer("strength_state", "Strength state", "All strengths") }}
+
+  {# score_state is the goal difference from the eventing team's point of view,
+     so it reads better as Up 1 / Tied / Down 1 than as raw numbers. #}
+  <label class="side-label" for="sel-score_state">Score state</label>
+  <select class="side-select" name="score_state" id="sel-score_state">
+    <option value="">Any score</option>
+    {% for value in available.score_state %}
+    {% set goals = value | int %}
+    <option value="{{ value }}"{% if selected.score_state == value %} selected{% endif %}>{% if goals == 0 %}Tied{% elif goals > 0 %}Up {{ goals }}{% else %}Down {{ -goals }}{% endif %}</option>
+    {% endfor %}
+  </select>
+
+  {{ slicer("event", "Event", "All events") }}
+
+  {% if direction is defined %}
+  <label class="side-label" for="sel-direction">From / To</label>
+  <select class="side-select" name="direction" id="sel-direction">
+    <option value="from"{% if direction == 'from' %} selected{% endif %}>From &mdash; where it happened</option>
+    <option value="to"{% if direction == 'to' %} selected{% endif %}>To &mdash; where a pass arrived</option>
+  </select>
+  {% endif %}
+
+  <div class="side-divider"></div>
+  <a class="dd-btn slicer-reset" href="{{ request.path }}">Reset</a>
+</form>

@@ -1,0 +1,14 @@
+{# Download links for the side panel.
+
+   Both files sit behind the gate, so the links point at a route that checks the
+   unlock cookie before handing anything over. #}
+<label class="side-label">Downloads</label>
+<div class="side-links">
+  {% for d in downloads %}
+  <a class="dd-btn side-link" href="{{ url_for('download', name=d.name) }}"
+     title="{{ d.filename }}">
+    <span>{{ d.label }}</span>
+    <span class="side-link-size">{{ d.size }}</span>
+  </a>
+  {% endfor %}
+</div>

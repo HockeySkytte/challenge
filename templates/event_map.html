@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Event Map &middot; {{ config.app_title_top }} {{ config.app_title_bottom }}{% endblock %}
+
+{% block sidebar_filters %}
+  {% include "_slicers.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="page-hdr">
+  <div>
+    <div class="page-title">Event Map</div>
+    <div class="page-sub">
+      {{ "{:,}".format(matched) }} matching event{% if matched != 1 %}s{% endif %}
+      {%- if selected.event %} &middot; {{ selected.event }}{% endif %}
+      {%- if selected.team %} &middot; {{ selected.team }}{% endif %}
+      {%- if selected.competition %} &middot; {{ selected.competition }}{% endif %}
+    </div>
+  </div>
+</div>
+
+{% if drawn < total %}
+<div class="flash flash-info">
+  Drawing the first <strong>{{ "{:,}".format(drawn) }}</strong> of
+  {{ "{:,}".format(total) }} matching events. Narrow the slicers to see them all.
+</div>
+{% endif %}
+
+<div class="rink-wrap">
+  <div class="rink-zone-labels">
+    <span class="rz-dz">Defensive Zone</span>
+    <span class="rz-nz"></span>
+    <span class="rz-oz">Offensive Zone</span>
+  </div>
+
+  <svg class="rink-svg" viewBox="0 0 200 85" role="img"
+       aria-label="Rink map of the matching events">
+    <defs>
+      <marker id="head-pass" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="4.5" markerHeight="4.5" orient="auto">
+        <path d="M0,0 L10,5 L0,10 Z" fill="#2563eb" />
+      </marker>
+      <marker id="head-incomplete" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="4.5" markerHeight="4.5" orient="auto">
+        <path d="M0,0 L10,5 L0,10 Z" fill="#dc2626" />
+      </marker>
+    </defs>
+
+    <image href="{{ url_for('static', filename='hockeyrink.png') }}"
+           x="0" y="0" width="200" height="85" />
+
+    {% for e in events %}
+      {% set tip = e.event ~ " · " ~ e.player ~ " (" ~ e.team ~ ") · P" ~ e.period ~ " " ~ e.time ~ "s" %}
+
+      {% if e.kind == "pass" or e.kind == "incomplete" %}
+        <line x1="{{ e.x }}" y1="{{ e.y }}" x2="{{ e.x2 }}" y2="{{ e.y2 }}"
+              class="ev-arrow"
+              stroke="{{ '#2563eb' if e.kind == 'pass' else '#dc2626' }}"
+              marker-end="url(#{{ 'head-pass' if e.kind == 'pass' else 'head-incomplete' }})">
+          <title>{{ tip }}</title>
+        </line>
+
+      {% elif e.kind == "shot" %}
+        {% if e.event == "Goal" %}
+          <polygon class="ev-shot" points="{{ e.x }},{{ e.y - 1.9 }} {{ e.x + 1.9 }},{{ e.y + 1.3 }} {{ e.x - 1.9 }},{{ e.y + 1.3 }}"><title>{{ tip }}</title></polygon>
+        {% elif e.event == "Shot on Net" %}
+          <circle class="ev-shot" cx="{{ e.x }}" cy="{{ e.y }}" r="1.5"><title>{{ tip }}</title></circle>
+        {% elif e.event == "Missed Shot" %}
+          <rect class="ev-shot" x="{{ e.x - 1.4 }}" y="{{ e.y - 1.4 }}" width="2.8" height="2.8"><title>{{ tip }}</title></rect>
+        {% else %}
+          <polygon class="ev-shot" points="{{ e.x }},{{ e.y - 1.8 }} {{ e.x + 1.8 }},{{ e.y }} {{ e.x }},{{ e.y + 1.8 }} {{ e.x - 1.8 }},{{ e.y }}"><title>{{ tip }}</title></polygon>
+        {% endif %}
+
+      {% else %}
+        <circle class="ev-dot" cx="{{ e.x }}" cy="{{ e.y }}" r="0.8"><title>{{ tip }}</title></circle>
+      {% endif %}
+    {% endfor %}
+  </svg>
+
+  <div class="rink-legend">
+    <span><svg viewBox="0 0 24 12" class="lg"><line x1="1" y1="6" x2="21" y2="6" stroke="#2563eb" stroke-width="2"/><path d="M21,6 L16,3 L16,9 Z" fill="#2563eb"/></svg>Play</span>
+    <span><svg viewBox="0 0 24 12" class="lg"><line x1="1" y1="6" x2="21" y2="6" stroke="#dc2626" stroke-width="2"/><path d="M21,6 L16,3 L16,9 Z" fill="#dc2626"/></svg>Incomplete Play</span>
+    <span><svg viewBox="0 0 24 12" class="lg"><circle cx="12" cy="6" r="4" fill="#2563eb"/></svg>Shot on Net</span>
+    <span><svg viewBox="0 0 24 12" class="lg"><rect x="8" y="2" width="8" height="8" fill="#2563eb"/></svg>Missed Shot</span>
+    <span><svg viewBox="0 0 24 12" class="lg"><polygon points="12,1 18,6 12,11 6,6" fill="#2563eb"/></svg>Blocked Shot</span>
+    <span><svg viewBox="0 0 24 12" class="lg"><polygon points="12,1 19,10 5,10" fill="#2563eb"/></svg>Goal</span>
+    <span><svg viewBox="0 0 24 12" class="lg"><circle cx="12" cy="6" r="4" fill="#111"/></svg>Other events</span>
+  </div>
+</div>
+{% endblock %}

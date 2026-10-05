@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Heat Map &middot; {{ config.app_title_top }} {{ config.app_title_bottom }}{% endblock %}
+
+{% block sidebar_filters %}
+  {% include "_slicers.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="page-hdr">
+  <div>
+    <div class="page-title">Heat Map</div>
+    <div class="page-sub">
+      {{ "{:,}".format(matched) }} matching event{% if matched != 1 %}s{% endif %}
+      &middot;
+      {% if direction == "to" %}counting where a pass arrived{% else %}counting where the event happened{% endif %}
+      {%- if selected.event %} &middot; {{ selected.event }}{% endif %}
+      {%- if selected.team %} &middot; {{ selected.team }}{% endif %}
+      {%- if selected.competition %} &middot; {{ selected.competition }}{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="rink-wrap">
+  <div class="rink-zone-labels">
+    <span class="rz-dz">Defensive Zone</span>
+    <span class="rz-nz"></span>
+    <span class="rz-oz">Offensive Zone</span>
+  </div>
+
+  <svg class="rink-svg" viewBox="0 0 200 85" role="img"
+       aria-label="Heat map of the matching events by rink box">
+    <image href="{{ url_for('static', filename='hockeyrink.png') }}"
+           x="0" y="0" width="200" height="85" />
+
+    {% for z in zones %}
+    <path class="hm-box" d="{{ z.d }}" fill="{{ z.fill }}">
+      <title>{{ z.id }} &middot; {{ "{:,}".format(z.count) }} event{% if z.count != 1 %}s{% endif %}</title>
+    </path>
+    {% endfor %}
+
+    {% for z in zones %}
+    <text class="hm-label" x="{{ z.cx }}" y="{{ z.cy }}">{{ z.count }}</text>
+    {% endfor %}
+  </svg>
+</div>
+{% endblock %}

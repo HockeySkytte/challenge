@@ -1,0 +1,40 @@
+{# The rink map shared by the two value pages: a diverging heat map of a
+   per-situation value, with every box that has data labelled.
+
+   Expects: zones (with fill and label), extent, decimals, map_label. #}
+<div class="rink-wrap">
+  <div class="rink-zone-labels">
+    <span class="rz-dz">Defensive Zone</span>
+    <span class="rz-nz"></span>
+    <span class="rz-oz">Offensive Zone</span>
+  </div>
+
+  <svg class="rink-svg" viewBox="0 0 200 85" role="img" aria-label="{{ map_label }}">
+    <image href="{{ url_for('static', filename='hockeyrink.png') }}"
+           x="0" y="0" width="200" height="85" />
+
+    {% for z in zones %}
+    <path class="hm-box" d="{{ z.d }}" fill="{{ z.fill }}"></path>
+    {% endfor %}
+
+    {# Every box that takes part is labelled with its region's value, so a
+       merged or mirrored region reads as one block with no holes in it. #}
+    {% for z in zones %}
+    {% if z.label %}
+    <text class="hm-label pv-label" x="{{ z.cx }}" y="{{ z.cy }}">{{ z.label }}<title>{{ z.region }} &middot; {{ "{:,}".format(z.region_windows) }} windows</title></text>
+    {% endif %}
+    {% endfor %}
+  </svg>
+
+  <div class="rink-legend">
+    <span class="pv-scale">
+      <span>{{ "-%.*f"|format(decimals, extent) }}</span>
+      <span class="pv-swatch" style="background:rgba(200,16,46,0.80);"></span>
+      <span class="pv-swatch" style="background:rgba(200,16,46,0.40);"></span>
+      <span class="pv-swatch" style="background:rgba(255,255,255,0.18);"></span>
+      <span class="pv-swatch" style="background:rgba(30,80,200,0.40);"></span>
+      <span class="pv-swatch" style="background:rgba(30,80,200,0.80);"></span>
+      <span>{{ "+%.*f"|format(decimals, extent) }}</span>
+    </span>
+  </div>
+</div>

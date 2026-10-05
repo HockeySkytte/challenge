@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+*.log
+
+# The raw dataset IS committed on purpose: it makes this repo runnable on its
+# own and keeps the deployed site reproducible.
