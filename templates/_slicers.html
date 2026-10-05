@@ -4,8 +4,10 @@
    whenever a value changes.  Each one carries an "all" option, except the event
    slicer, which opens on Play.
 
-   `direction` is only passed by the Heat Map, so the From/To slicer appears on
-   that page and nowhere else. #}
+   `shows_direction` is set by the Heat Map, and only when a pass is selected:
+   Play and Incomplete Play are the only events with a second location to choose
+   between.  It is passed as false rather than left out so the template can test
+   it directly. #}
 <form method="get" id="slicers" class="slicers">
   {% macro slicer(name, label, all_label) %}
   <label class="side-label" for="sel-{{ name }}">{{ label }}</label>
@@ -35,11 +37,11 @@
 
   {{ slicer("event", "Event", "All events") }}
 
-  {% if direction is defined %}
+  {% if shows_direction %}
   <label class="side-label" for="sel-direction">From / To</label>
   <select class="side-select" name="direction" id="sel-direction">
-    <option value="from"{% if direction == 'from' %} selected{% endif %}>From &mdash; where it happened</option>
-    <option value="to"{% if direction == 'to' %} selected{% endif %}>To &mdash; where a pass arrived</option>
+    <option value="from"{% if direction == 'from' %} selected{% endif %}>From</option>
+    <option value="to"{% if direction == 'to' %} selected{% endif %}>To</option>
   </select>
   {% endif %}
 

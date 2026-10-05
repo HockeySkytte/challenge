@@ -142,17 +142,29 @@ def create_app(config: Config | None = None) -> Flask:
             drawn=len(events),
             total=total,
             limit=data_source.EVENT_MAP_LIMIT,
+            # From / To belongs to the Heat Map only.
+            shows_direction=False,
         )
 
     @app.get("/heatmap")
     def heat_map():
         if not auth.is_unlocked():
             return render_gate(next_url=request.full_path)
-        direction = "to" if request.args.get("direction") == "to" else "from"
         try:
             dataset, available, selected, frame = page_data()
         except data_source.DatasetMissing as exc:
             return render_template("error.html", message=str(exc), active_tab=""), 500
+
+        # From / To only means anything for a pass.  Play and Incomplete Play are
+        # the only events carrying a second location, so the slicer is hidden for
+        # everything else, and a direction left over in the URL is ignored rather
+        # than counting the events by a place they never had.
+        shows_direction = selected["event"] in data_source.PASS_EVENTS
+        direction = (
+            "to"
+            if shows_direction and request.args.get("direction") == "to"
+            else "from"
+        )
 
         counts = data_source.heat_counts(frame, direction)
         return render_template(
@@ -163,6 +175,7 @@ def create_app(config: Config | None = None) -> Flask:
             selected=selected,
             matched=len(frame),
             direction=direction,
+            shows_direction=shows_direction,
             zones=rink_geometry.heatmap_zones(
                 rink_geometry.zones(str(config.zones_geojson)), counts
             ),
