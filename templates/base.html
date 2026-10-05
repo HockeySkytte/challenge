@@ -1,7 +1,9 @@
 {# App shell: sidebar, sticky tab row, and the main content area.
 
-   Branding and accent come from `config`, so the shell can be re-skinned
-   without touching markup. #}
+   On a wide screen the pages are a tab strip across the top and the slicers sit
+   in the sidebar.  Below 900px the tab strip is replaced by a menu behind the
+   hamburger button, and the slicers fold away behind the filters button - see
+   the scripts at the bottom of this file. #}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=2" />
   <style>
     :root { --accent: {{ config.accent }}; }
   </style>
@@ -32,31 +34,36 @@
             </div>
           </div>
         </div>
+
+        {# Only shown on a narrow screen. #}
+        <div class="hdr-actions">
+          <button id="btnMobileMenu" class="icon-btn" type="button"
+                  aria-label="Pages" aria-expanded="false" aria-controls="mobileMenuPanel">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+          </button>
+          <button id="btnMobileFilters" class="icon-btn" type="button"
+                  aria-label="Filters" aria-expanded="true" aria-controls="side-selectors">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>
+          </button>
+        </div>
       </header>
+
+      <nav id="mobileMenuPanel" class="mobile-menu" hidden>
+        {% include "_nav.html" %}
+      </nav>
 
       <div class="side-divider"></div>
 
-      <div class="side-selectors">
+      <div class="side-selectors" id="side-selectors">
         {% block sidebar_filters %}{% endblock %}
       </div>
     </aside>
 
     <div class="main-col">
       <nav class="tabs">
-        {% block top_nav %}
-        <a href="{{ url_for('event_map') }}"
-           class="{% if active_tab == 'event_map' %}active{% endif %}">Event Map</a>
-        <a href="{{ url_for('heat_map') }}"
-           class="{% if active_tab == 'heat_map' %}active{% endif %}">Heat Map</a>
-        <a href="{{ url_for('possession') }}"
-           class="{% if active_tab == 'possession' %}active{% endif %}">Possession Values</a>
-        <a href="{{ url_for('zone_entries_page') }}"
-           class="{% if active_tab == 'zone_entries' %}active{% endif %}">Zone Entries</a>
-        <a href="{{ url_for('cleaning') }}"
-           class="{% if active_tab == 'cleaning' %}active{% endif %}">Data Cleaning</a>
-        <a href="{{ url_for('xg_models') }}"
-           class="{% if active_tab == 'xg' %}active{% endif %}">xG Models</a>
-        {% endblock %}
+        {% block top_nav %}{% include "_nav.html" %}{% endblock %}
       </nav>
       <main>
         {% block content %}{% endblock %}
@@ -69,6 +76,56 @@
     document.querySelectorAll('#slicers select').forEach(function (select) {
       select.addEventListener('change', function () { select.form.submit(); });
     });
+
+    (function () {
+      // The hamburger buttons only exist below 900px, and the stylesheet is what
+      // actually hides the panels - these handlers only keep the buttons and the
+      // panels in step with each other.
+      var narrow = function () { return window.matchMedia('(max-width: 900px)').matches; };
+      var btnMenu = document.getElementById('btnMobileMenu');
+      var btnFilters = document.getElementById('btnMobileFilters');
+      var menuPanel = document.getElementById('mobileMenuPanel');
+
+      function setMenuOpen(open) {
+        if (!menuPanel || !btnMenu) return;
+        menuPanel.hidden = !open;
+        btnMenu.setAttribute('aria-expanded', String(open));
+      }
+
+      function setFiltersCollapsed(collapsed) {
+        document.body.classList.toggle('filters-collapsed', collapsed);
+        if (btnFilters) btnFilters.setAttribute('aria-expanded', String(!collapsed));
+        localStorage.setItem('filtersCollapsed', collapsed ? '1' : '0');
+      }
+
+      if (btnMenu) {
+        btnMenu.addEventListener('click', function (event) {
+          event.stopPropagation();
+          setMenuOpen(menuPanel.hidden);
+        });
+      }
+
+      if (btnFilters) {
+        btnFilters.addEventListener('click', function (event) {
+          event.stopPropagation();
+          setFiltersCollapsed(!document.body.classList.contains('filters-collapsed'));
+        });
+      }
+
+      // A click anywhere else closes the page menu.
+      document.addEventListener('click', function (event) {
+        if (!menuPanel || menuPanel.hidden) return;
+        if (btnMenu && btnMenu.contains(event.target)) return;
+        if (menuPanel.contains(event.target)) return;
+        setMenuOpen(false);
+      });
+
+      // Narrow screens start with the slicers folded away, and remember what the
+      // visitor chose last time.
+      if (narrow()) {
+        setFiltersCollapsed(localStorage.getItem('filtersCollapsed') !== '0');
+      }
+    })();
   </script>
 </body>
 </html>

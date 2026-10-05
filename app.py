@@ -128,7 +128,7 @@ def create_app(config: Config | None = None) -> Flask:
         try:
             dataset, available, selected, frame = page_data()
         except data_source.DatasetMissing as exc:
-            return render_template("error.html", message=str(exc)), 500
+            return render_template("error.html", message=str(exc), active_tab=""), 500
 
         events, total = data_source.event_map(frame)
         return render_template(
@@ -152,7 +152,7 @@ def create_app(config: Config | None = None) -> Flask:
         try:
             dataset, available, selected, frame = page_data()
         except data_source.DatasetMissing as exc:
-            return render_template("error.html", message=str(exc)), 500
+            return render_template("error.html", message=str(exc), active_tab=""), 500
 
         counts = data_source.heat_counts(frame, direction)
         return render_template(
@@ -175,7 +175,7 @@ def create_app(config: Config | None = None) -> Flask:
         try:
             dataset = data_source.load(config)
         except data_source.DatasetMissing as exc:
-            return render_template("error.html", message=str(exc)), 500
+            return render_template("error.html", message=str(exc), active_tab=""), 500
 
         # An empty start means all three; an unknown one falls back to that too.
         start = request.args.get("start", "")
@@ -212,7 +212,7 @@ def create_app(config: Config | None = None) -> Flask:
         try:
             dataset = data_source.load(config)
         except data_source.DatasetMissing as exc:
-            return render_template("error.html", message=str(exc)), 500
+            return render_template("error.html", message=str(exc), active_tab=""), 500
 
         entry = request.args.get("entry", "")
         if entry not in zone_entries.ENTRY_TYPES:
@@ -251,7 +251,7 @@ def create_app(config: Config | None = None) -> Flask:
             dataset = data_source.load(config)
             models = data_source.load_models(config)
         except data_source.DatasetMissing as exc:
-            return render_template("error.html", message=str(exc)), 500
+            return render_template("error.html", message=str(exc), active_tab=""), 500
         return render_template(
             "xg_models.html",
             active_tab="xg",
@@ -266,7 +266,7 @@ def create_app(config: Config | None = None) -> Flask:
         try:
             dataset = data_source.load(config)
         except data_source.DatasetMissing as exc:
-            return render_template("error.html", message=str(exc)), 500
+            return render_template("error.html", message=str(exc), active_tab=""), 500
         return render_template(
             "cleaning.html",
             active_tab="cleaning",
@@ -287,7 +287,7 @@ def create_app(config: Config | None = None) -> Flask:
         _, filename = DOWNLOADS[name]
         path = {"raw": config.raw_csv, "cleaned": config.events_csv}[name]
         if not path.exists():
-            return render_template("error.html", message=f"{filename} is not on disk."), 500
+            return render_template("error.html", message=f"{filename} is not on disk.", active_tab=""), 500
         # Say the type rather than letting the host guess: on Windows a .csv is
         # registered as an Excel file, which is not what this is.
         return send_file(
