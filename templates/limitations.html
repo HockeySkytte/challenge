@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Limitations &middot; {{ config.app_title_top }} {{ config.app_title_bottom }}{% endblock %}
+
+{% block sidebar_filters %}
+<label class="side-label">Dataset</label>
+<div class="side-facts">
+  <div class="side-fact"><span class="k">Games</span><span class="v">{{ totals.games }}</span></div>
+  <div class="side-fact"><span class="k">Players</span><span class="v">{{ totals.players }}</span></div>
+  <div class="side-fact"><span class="k">Goals</span><span class="v">{{ totals.goals }}</span></div>
+  <div class="side-fact"><span class="k">Shots</span><span class="v">{{ "{:,}".format(totals.shot_attempts) }}</span></div>
+</div>
+
+<div class="side-divider"></div>
+<label class="side-label">Windows</label>
+<div class="side-facts">
+  <div class="side-fact"><span class="k">Possessions</span><span class="v">{{ "{:,}".format(totals.windows) }}</span></div>
+  <div class="side-fact"><span class="k">With a shot</span><span class="v">{{ "{:,}".format(totals.windows_with_shot) }}</span></div>
+</div>
+
+<div class="side-divider"></div>
+<form method="POST" action="{{ url_for('lock') }}">
+  <button class="dd-btn" type="submit" style="justify-content:center;">Lock this page</button>
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="page-hdr">
+  <div>
+    <div class="page-title">Limitations</div>
+    <div class="page-sub">
+      What this data cannot answer, and what a production version would change
+    </div>
+  </div>
+</div>
+
+<p class="prose">
+  Three limits worth knowing before reading a number on the other pages, then
+  three things that would be built differently if this were a live system rather
+  than a study of a finished tournament.
+</p>
+
+<div class="section-title">What the data cannot answer</div>
+
+<ul class="prose-list">
+  <li>
+    <strong>The sample is small.</strong> {{ totals.games }} games,
+    {{ totals.players }} players and {{ totals.goals }} goals in the whole file,
+    with {{ "{:,}".format(totals.shot_attempts) }} shot attempts to look at.
+    Both xG models are fitted on the same {{ totals.training_goals }} goals
+    &mdash; the ones scored at 5v5 in the international games. Every breakdown
+    thins out from there: of the {{ "{:,}".format(totals.windows) }} possession
+    windows behind the Possession Values page, only
+    {{ "{:,}".format(totals.windows_with_shot) }} contain a shot attempt at all.
+    Read the shape of a map rather than its exact figures, and be careful about
+    leaning on any single region.
+  </li>
+
+  <li>
+    <strong>A possession has a beginning, but no recorded end.</strong> The file
+    marks where and when a player's possession <em>starts</em> &mdash; a
+    <code>Puck Recovery</code>, a <code>Reception</code> or a
+    <code>Takeaway</code> &mdash; but nothing marks where or when it ends. There
+    is no possession-end event, and the nearest proxy, the moment the other team
+    next gains the puck, cannot tell a clean possession from one interrupted by a
+    whistle.
+    <br />
+    So possession time cannot be measured, and neither can carry distance. Only
+    passes carry a second point, where the puck was aimed, which is why a pass
+    has a length on the Event Map and a carry does not: we know where the carrier
+    was when the event was logged, never where they picked the puck up.
+  </li>
+
+  <li>
+    <strong>There is no shift data.</strong> The file records <em>how many</em>
+    skaters were on the ice for each event &mdash; that is where
+    <code>strength_state</code> comes from, and it is what makes the 5v5
+    filtering on the other pages possible &mdash; but not <em>who</em> they were.
+    Only the players directly involved in an event are ever named.
+    <br />
+    That rules out on-ice analytics entirely. Anything of the form "how did this
+    player's team do while he was on the ice" &mdash; on-ice corsi, on-ice
+    expected goals, line combinations, deployment &mdash; cannot be built from
+    this file, because the other skaters are anonymous.
+  </li>
+</ul>
+
+<div class="section-title">What a production version would change</div>
+
+<p class="prose">
+  Everything above is a limit of the data. These are limits of how the project is
+  put together, and all three would be answered differently for a system in
+  daily use.
+</p>
+
+<ul class="prose-list">
+  <li>
+    <strong>Where the data lives.</strong> The app reads one CSV. For a frozen
+    tournament of this size that is the right call: it is simple, it travels with
+    the code, and there is nothing to run or pay for.
+    <br />
+    A live system would keep the events in a database instead &mdash; Postgres,
+    either managed (Supabase, Neon, RDS) or on a server you control. That buys
+    three things a file cannot. <em>Indexes</em>, so filtering hundreds of
+    thousands of rows by team, player and strength state stays fast as the table
+    grows. <em>Concurrent access</em>, so several analysts can query at once
+    instead of passing a file around. And <em>incremental writes</em>, so a new
+    game is an insert rather than a rewrite of the whole dataset.
+    <br />
+    It would also move work into SQL. The slicers and the grouping behind every
+    map are <code>GROUP BY</code> queries, and a database is better at those than
+    pandas is.
+  </li>
+
+  <li>
+    <strong>How the data gets there.</strong> Today the pipeline is a script run
+    by hand, which is fine for a dataset that never changes.
+    <br />
+    If games arrived daily it would become a scheduled job: pull the new events,
+    run the same cleaning steps, load them, and refresh whatever is cached.
+    GitHub Actions on a cron schedule is the cheapest way to start &mdash; a
+    workflow that runs the pipeline on a timer and loads the result. A larger
+    system would more likely run it on the server itself, so the load happens
+    next to the database, but the shape is the same either way.
+    <br />
+    The part that matters is not the scheduler, it is what happens when the job
+    fails. A cron job that dies quietly leaves the site serving stale data with
+    nothing to show for it, so the run needs to report success or failure
+    somewhere a person will see it.
+  </li>
+
+  <li>
+    <strong>Who can see it.</strong> The current gate is one shared password. It
+    answers "may this person look at all?" and nothing finer &mdash; everyone
+    holding it sees everything, including the pages they have no use for.
+    <br />
+    Real access would be per role, and the roles here are fairly obvious:
+  </li>
+</ul>
+
+<div class="panel">
+  <table class="table">
+    <thead>
+      <tr><th class="left">Role</th><th class="left">What they would see</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="left"><strong>Players</strong></td>
+        <td class="left">Their own numbers &mdash; a read-only view of their own shifts, shots and possession value. Not other players', and probably not the team-wide maps.</td>
+      </tr>
+      <tr>
+        <td class="left"><strong>Coaches</strong></td>
+        <td class="left">The whole team: every player, every situation, every page. This is the audience the site is built for.</td>
+      </tr>
+      <tr>
+        <td class="left"><strong>Analysts</strong></td>
+        <td class="left">Everything a coach sees, plus the pipeline: re-running the cleaning, adjusting the models, and exporting the underlying data.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p class="prose">
+  That needs real accounts rather than one password: a users table, hashed
+  passwords, a session per visitor, and a role check on each route. The useful
+  part is that the code already draws that line in one place &mdash; every route
+  goes through the same gate &mdash; so it is a change to the gate rather than to
+  the pages.
+</p>
+
+<p class="prose">
+  None of this changes the analysis. The maps, the models and the rates would all
+  be the same; what changes is where the data lives, how it gets there, and who
+  is allowed to see it.
+</p>
+{% endblock %}

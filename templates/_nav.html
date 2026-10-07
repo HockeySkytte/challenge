@@ -10,6 +10,7 @@
      ("zone_entries_page",  "Zone Entries",     "zone_entries"),
      ("cleaning",           "Data Cleaning",    "cleaning"),
      ("xg_models",          "xG Models",        "xg"),
+     ("limitations",        "Limitations",      "limitations"),
    ] %}
 {% for endpoint, label, tab in pages %}
 <a href="{{ url_for(endpoint) }}"{% if active_tab == tab %} class="active"{% endif %}>{{ label }}</a>

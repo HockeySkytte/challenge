@@ -280,10 +280,27 @@ def create_app(config: Config | None = None) -> Flask:
             dataset = data_source.load(config)
         except data_source.DatasetMissing as exc:
             return render_template("error.html", message=str(exc), active_tab=""), 500
+        return render_template(
+            "cleaning.html",
+            active_tab="cleaning",
+            dataset=dataset,
+            columns=len(dataset.frame.columns),
+            receptions=int((dataset.frame["event"] == "Reception").sum()),
+            downloads=download_list(),
+        )
 
-        # The size of the file, for the data-concerns section at the bottom of
-        # the page.  Read from the data rather than written into the template, so
-        # the figures cannot drift away from what the pages actually show.
+    @app.get("/limitations")
+    def limitations():
+        if not auth.is_unlocked():
+            return render_gate(next_url=request.full_path)
+        try:
+            dataset = data_source.load(config)
+        except data_source.DatasetMissing as exc:
+            return render_template("error.html", message=str(exc), active_tab=""), 500
+
+        # The size of the file, for the limitations.  Read from the data rather
+        # than written into the template, so the figures cannot drift away from
+        # what the other pages actually show.
         frame = dataset.frame
         starts = possession_values.population(frame)
         saw_a_shot = starts["CF_15"].fillna(0) + starts["CA_15"].fillna(0) > 0
@@ -291,12 +308,9 @@ def create_app(config: Config | None = None) -> Flask:
         trained_on = possession_values.international_five_on_five(frame)
 
         return render_template(
-            "cleaning.html",
-            active_tab="cleaning",
+            "limitations.html",
+            active_tab="limitations",
             dataset=dataset,
-            columns=len(frame.columns),
-            receptions=int((frame["event"] == "Reception").sum()),
-            downloads=download_list(),
             totals={
                 "games": int(
                     frame.groupby(["game_date", "home_team", "away_team"]).ngroups

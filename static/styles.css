@@ -147,7 +147,14 @@ body{
   position:sticky;
   top:0;
   z-index:20;
+  /* Seven pages is wide enough to run out of room on a laptop, so the strip
+     scrolls rather than squashing or wrapping.  The bar itself is hidden - it
+     would eat into the 46px height and the tabs are discoverable by scrolling. */
+  overflow-x:auto;
+  scrollbar-width:none;
 }
+.tabs::-webkit-scrollbar{ display:none; }
+.tabs a{ flex:0 0 auto; }
 .tabs a{
   position:relative;
   top:10px;
