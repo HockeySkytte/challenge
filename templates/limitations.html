@@ -47,27 +47,18 @@
     {{ totals.players }} players and {{ totals.goals }} goals in the whole file,
     with {{ "{:,}".format(totals.shot_attempts) }} shot attempts to look at.
     Both xG models are fitted on the same {{ totals.training_goals }} goals
-    - the ones scored at 5v5 in the international games. Every breakdown
-    thins out from there: of the {{ "{:,}".format(totals.windows) }} possession
-    windows behind the Possession Values page, only
-    {{ "{:,}".format(totals.windows_with_shot) }} contain a shot attempt at all.
-    Read the shape of a map rather than its exact figures, and be careful about
-    leaning on any single region.
+    - the ones scored at 5v5 in the international games. Read the shape of a map
+    rather than its exact figures, and be careful about leaning on any single
+    region.
   </li>
 
   <li>
     <strong>A possession has a beginning, but no recorded end.</strong> The file
     marks where and when a player's possession <em>starts</em> - a
     <code>Puck Recovery</code>, a <code>Reception</code> or a
-    <code>Takeaway</code> - but nothing marks where or when it ends. There
-    is no possession-end event, and the nearest proxy, the moment the other team
-    next gains the puck, cannot tell a clean possession from one interrupted by a
-    whistle.
+    <code>Takeaway</code> - but nothing necessarily marks where or when it ends.
     <br />
-    So possession time cannot be measured, and neither can carry distance. Only
-    passes carry a second point, where the puck was aimed, which is why a pass
-    has a length on the Event Map and a carry does not: we know where the carrier
-    was when the event was logged, never where they picked the puck up.
+    So possession time cannot be measured, and neither can carry distance.
   </li>
 
   <li>
@@ -97,13 +88,13 @@
     <strong>Where the data lives.</strong> The app reads one CSV. For a frozen
     tournament of this size that is the right call: it is simple, it travels with the code and there is nothing to run or pay for.
     <br />
-    A live system would keep the events in a database instead - Postgres,
-    either managed (Supabase, Neon, RDS) or on a server you control. That buys
-    three things a file cannot. <em>Indexes</em>, so filtering hundreds of
-    thousands of rows by team, player and strength state stays fast as the table
-    grows. <em>Concurrent access</em>, so several analysts can query at once
-    instead of passing a file around. And <em>incremental writes</em>, so a new
-    game is an insert rather than a rewrite of the whole dataset.
+    A live system would keep the events in a database instead - for instance
+    Postgres, either managed (e.g. Supabase, Neon, RDS) or on a server you
+    control. That buys three things a file cannot. <em>Indexes</em>, so filtering
+    hundreds of thousands of rows by team, player and strength state stays fast
+    as the table grows. <em>Concurrent access</em>, so several analysts can query
+    at once instead of passing a file around. And <em>incremental writes</em>, so
+    a new game is an insert rather than a rewrite of the whole dataset.
     <br />
     It would also move work into SQL. The slicers and the grouping behind every
     map are <code>GROUP BY</code> queries, and a database is better at those than
@@ -120,11 +111,6 @@
     workflow that runs the pipeline on a timer and loads the result. A larger
     system would more likely run it on the server itself, so the load happens
     next to the database, but the shape is the same either way.
-    <br />
-    The part that matters is not the scheduler, it is what happens when the job
-    fails. A cron job that dies quietly leaves the site serving stale data with
-    nothing to show for it, so the run needs to report success or failure
-    somewhere a person will see it.
   </li>
 
   <li>
