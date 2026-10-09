@@ -76,13 +76,17 @@ Open <http://127.0.0.1:5002> and enter the password.
 ├── clean_data.py          The cleaning script - one numbered step per function
 ├── templates/
 │   ├── base.html          App shell - sidebar, tabs, content area
+│   ├── _nav.html          The page links, shared by the tabs and the mobile menu
 │   ├── _slicers.html      The side panel slicers, shared by both rink pages
+│   ├── _value_map.html    The rink map, shared by both value pages
+│   ├── _downloads.html    The download links in the sidebar
 │   ├── event_map.html     Event Map
 │   ├── heatmap.html       Heat Map
 │   ├── possession.html    Possession Values
 │   ├── zone_entries.html  Zone Entries
 │   ├── cleaning.html      Data Cleaning
 │   ├── xg_models.html     xG Models
+│   ├── limitations.html   Limitations
 │   ├── gate.html          Password gate
 │   └── error.html         "Dataset unavailable"
 ├── static/
@@ -94,7 +98,6 @@ Open <http://127.0.0.1:5002> and enter the password.
 │   ├── olympic_womens_dataset.csv    The raw dataset (4.5 MB)
 │   ├── Dataset Description.pdf       The data dictionary
 │   ├── HockeyRinkZones.geojson       Rink zone geometry
-│   ├── hockeyrink.png
 │   └── cleaned/
 │       ├── events.csv                Written by clean_data.py
 │       └── xg_models.json            What the xG models were trained on and scored
@@ -128,7 +131,7 @@ to do, and it keeps the deploy to a single service.
 
 ### The pages
 
-Six tabs, all behind the same gate.
+Seven tabs, all behind the same gate.
 
 **Event Map** draws the matching events on a rink, from the eventing team's point
 of view, so the goal being attacked is always on the right:
@@ -212,6 +215,12 @@ and 30 goals - so the numbers should not be leaned on too hard. The figures come
 from `data/cleaned/xg_models.json`, which `clean_data.py` writes when it fits the
 models, so the page shows the models that actually produced the xG columns rather
 than a second set trained just for display.
+
+**Limitations** is the honest page. It sets out what the file cannot answer - the
+sample is small, a possession has no recorded end, and there is no shift data -
+and then what would be built differently for a system in daily use: a database
+instead of a CSV, a scheduled job instead of a script run by hand, and per-role
+access instead of one shared password.
 
 Both rink pages share the same side panel: **Competition, Team, Player, Strength
 State, Score State** and **Event**, plus **From / To** on the Heat Map only. The

@@ -80,8 +80,9 @@ body{
 .side-fact.stack{ flex-direction:column; align-items:flex-start; gap:2px; }
 .side-fact.stack .v{ text-align:left; font-size:11px; }
 
-/* ── Custom dropdown (matches the app's rounded open menu) ── */
-.dd{ position:relative; width:100%; }
+/* ── Sidebar button ──────────────────────────────────────── */
+/* Worn by the Lock button and the Reset link.  The slicers themselves are
+   native <select> elements, styled further down. */
 .dd-btn{
   width:100%;
   display:flex;
@@ -98,40 +99,6 @@ body{
   cursor:pointer;
 }
 .dd-btn:focus{ outline:2px solid rgba(255,255,255,0.18); outline-offset:2px; }
-.dd-value{ text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.dd-caret{ opacity:0.95; font-size:14px; }
-
-.dd-menu{
-  display:none;
-  position:absolute;
-  left:0;
-  right:0;
-  top:calc(100% + 8px);
-  max-height:340px;
-  overflow:auto;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,0.18);
-  background:#0e121b;
-  padding:6px;
-  z-index:50;
-  box-shadow:0 20px 50px rgba(0,0,0,0.55);
-}
-.dd.open .dd-menu{ display:block; }
-.dd-item{
-  width:100%;
-  display:block;
-  text-align:left;
-  border:0;
-  background:transparent;
-  color:var(--text);
-  padding:9px 10px;
-  border-radius:10px;
-  font-size:12px;
-  font-weight:800;
-  cursor:pointer;
-}
-.dd-item:hover{ background:rgba(255,255,255,0.06); }
-.dd-item.active{ background:#2a3142; color:var(--text); }
 
 /* ── Main column ─────────────────────────────────────────── */
 .main-col{ min-width:0; }
@@ -193,11 +160,6 @@ main{ padding:26px 42px 24px; min-width:0; }
   overflow:auto;
 }
 
-.panel-title{
-  font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:0.6px;
-  color:rgba(255,255,255,0.50); margin-bottom:10px;
-}
-
 .table{ width:100%; border-collapse:collapse; font-size:14px; }
 .table th{
   position:sticky;
@@ -214,8 +176,6 @@ main{ padding:26px 42px 24px; min-width:0; }
 }
 .table td{ padding:10px 10px; border-bottom:1px solid #1a2230; text-align:center; white-space:nowrap; }
 .table td.left, .table th.left{ text-align:left; }
-.bold{ font-weight:900; }
-.table th.rank-col, .table td.rank-col{ color:var(--text-dim); font-weight:700; width:34px; }
 
 .btn{
   background:var(--panel-alt);
