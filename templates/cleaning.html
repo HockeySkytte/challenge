@@ -35,26 +35,23 @@
     <div class="step-title"><span class="step-num">1</span>Clean the teams</div>
     <p class="step-body">
       The three team columns are renamed to <code>home_team</code>,
-      <code>away_team</code> and <code>team</code>, which is easier to work with
-      than the spaced-out names the file uses.
+      <code>away_team</code> and <code>team</code>.
     </p>
     <p class="step-body">
-      Olympic team names are shortened to just the nation, because
-      &ldquo;Olympic (Women)&rdquo; is the same for all of them and tells you
-      nothing. <code>Olympic (Women) - Canada</code> becomes <code>Canada</code>,
-      and <code>Olympic Athletes from Russia</code> becomes <code>Russia</code>.
-      The two college teams keep their full names.
+      Olympic team names are shortened to just the nation.
+      <code>Olympic (Women) - Canada</code> becomes <code>Canada</code>, and
+      <code>Olympic Athletes from Russia</code> becomes <code>Russia</code>. The
+      two college teams keep their full names.
     </p>
   </li>
 
   <li>
     <div class="step-title"><span class="step-num">2</span>Turn the clock into a running total</div>
     <p class="step-body">
-      The clock counts down from 20:00 and restarts every period, so it cannot be
-      used to ask what happened next. It is replaced with
-      <code>time_elapsed</code>: the number of seconds since the game started.
-      Period 1 runs 0 to 1,200, period 2 runs 1,200 to 2,400, and so on. The
-      column that held the period is now <code>period</code>.
+      The clock counts down from 20:00 and restarts every period. It is replaced
+      with <code>time_elapsed</code>: the number of seconds since the game
+      started. Period 1 runs 0 to 1,200, period 2 runs 1,200 to 2,400 and so on.
+      The column that held the period is now <code>period</code>.
     </p>
   </li>
 
@@ -80,15 +77,15 @@
     <div class="step-title"><span class="step-num">4</span>Name the shot outcome, and give the receiver a row</div>
     <p class="step-body">
       Every shot was called <code>Shot</code>, with the outcome in a separate
-      column. The outcome is now part of the name &mdash; <code>Shot on Net</code>,
-      <code>Missed Shot</code> or <code>Blocked Shot</code> &mdash; so a shot says
-      what happened to it. Goals keep the name <code>Goal</code>.
+      column. The outcome is now part of the name &mdash;
+      <code>Shot on Net</code>, <code>Missed Shot</code> or
+      <code>Blocked Shot</code>. Goals keep the name <code>Goal</code>.
     </p>
     <p class="step-body">
-      A <code>Play</code> is a pass that reached its target. The file credited
-      only the passer, which left the receiver invisible. A <code>Reception</code>
-      row is now added underneath every pass, for the player who received it, at
-      the place they received it. This is why the cleaned file has
+      A <code>Play</code> is a pass that reached its target. A
+      <code>Reception</code> row is now added underneath every pass, for the
+      player who received it, at the place they received it. This is why the
+      cleaned file has
       <strong>{{ "{:,}".format(receptions) }} more rows</strong> than the raw one.
     </p>
     <p class="step-body">
@@ -106,10 +103,10 @@
       was aimed.
     </p>
     <p class="step-body">
-      They are also shifted so the middle of the rink is zero: <code>x</code> runs
-      from &minus;100 at your own goal line to +100 at the goal you are attacking,
-      and <code>y</code> runs &minus;42.5 to +42.5 across the ice. Positive x is
-      always the attacking end, whichever team took the event.
+      They are also shifted so the middle of the rink is zero: <code>x</code>
+      runs from &minus;100 to +100, and <code>y</code> runs &minus;42.5 to +42.5
+      across the ice. Positive x is always the attacking end, whichever team took
+      the event.
     </p>
   </li>
 
@@ -121,10 +118,9 @@
     </p>
     <p class="step-body">
       Two edge cases need a rule. An event sitting exactly on a blue line counts
-      as being in the end zone rather than the middle, because the blue line is
-      where the end zone begins. An event logged right on the boards, or out in a
-      rounded corner, is put in the nearest box &mdash; a puck is never off the
-      ice.
+      as being in the end zone rather than the middle. An event logged right on
+      the boards, or out in a rounded corner, is put in the nearest box &mdash; a
+      puck is never off the ice.
     </p>
   </li>
 
@@ -133,8 +129,8 @@
     <p class="step-body">
       <code>possession_start</code> is <code>1</code> when an event is the moment
       a player takes control of the puck &mdash; a <code>Puck Recovery</code>, a
-      <code>Reception</code> or a <code>Takeaway</code> &mdash; and
-      <code>0</code> for everything else.
+      <code>Reception</code> or a <code>Takeaway</code>. It is <code>0</code> for
+      everything else.
     </p>
   </li>
 
@@ -143,8 +139,8 @@
     <p class="step-body">
       Two expected-goal (xG) models are built, both simple logistic regressions.
       They look at only four things: how far the shot was from the net, how much
-      of the goal mouth the shooter could see, whether there was traffic in
-      front, and whether it was a one-timer.
+      of the goal mouth the shooter could see (shot angle), whether there was
+      traffic in front and whether it was a one-timer.
     </p>
     <p class="step-body">
       <code>xg_all_shots</code> is trained on every shot attempt.
@@ -158,8 +154,8 @@
   <li>
     <div class="step-title"><span class="step-num">9</span>Label the competition</div>
     <p class="step-body">
-      <code>competition</code> says which tournament each game belongs to:
-      <code>Olympic</code>, <code>NCAA</code>, <code>Rivalry Series</code> or
+      The <code>competition</code> column says which tournament each game belongs
+      to: <code>Olympic</code>, <code>NCAA</code>, <code>Rivalry Series</code> or
       <code>World Championship</code>.
     </p>
   </li>
@@ -168,8 +164,10 @@
     <div class="step-title"><span class="step-num">10</span>Count the next 15 seconds</div>
     <p class="step-body">
       Every possession start and every <code>Zone Entry</code> opens a 15-second
-      window. Everything that happens inside it is counted twice, once for the
-      team that opened the window and once for the other team:
+      window. Shots for the possession team are then counted
+      (<code>CF</code>, <code>FF</code>, <code>SF</code> etc.) and likewise shots
+      for the opponent team (<code>CA</code>, <code>FA</code>,
+      <code>SA</code> etc.):
     </p>
     <ul>
       <li><code>CF_15</code> / <code>CA_15</code> &mdash; every shot attempt, on net, missed, blocked or a goal.</li>
@@ -179,7 +177,7 @@
       <li><code>xGF_15</code> / <code>xGA_15</code> &mdash; expected goals.</li>
     </ul>
     <p class="step-body">
-      A goal, or the end of a period, closes the window early. A goal still
+      A goal or the end of a period, closes the window early. A goal still
       counts, because it happened inside the window.
     </p>
   </li>
