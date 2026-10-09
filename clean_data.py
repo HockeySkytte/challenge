@@ -105,7 +105,7 @@ def step_1_clean_teams(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
        they have: "St. Lawrence Saints" and "Clarkson Golden Knights".
 
     All three team columns are updated, so a nation is spelled the same way
-    whether it appears as the home team, the away team, or the event team.
+    whether it appears as the home team, the away team or the event team.
     """
     df = df.rename(columns=TEAM_COLUMN_RENAMES)
 
@@ -309,7 +309,7 @@ def step_3_venue_strength_and_score(df: pd.DataFrame) -> tuple[pd.DataFrame, lis
 
 
 # ===========================================================================
-# STEP 4 - Shot outcomes, receptions, and the remaining column names
+# STEP 4 - Shot outcomes, receptions and the remaining column names
 # ===========================================================================
 
 #: What a "Shot" event should be called, based on its "Detail 2" value.
@@ -334,14 +334,14 @@ EVENT_COLUMN_RENAMES = {
 def step_4_shot_outcomes_receptions_and_names(
     df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, list[str]]:
-    """Give shots their outcome, add a Reception under every Play, and rename the rest.
+    """Give shots their outcome, add a Reception under every Play and rename the rest.
 
     Three things happen here.
 
     1. A shot says what happened to it.
        Every shot is logged with the same event name, "Shot", and the outcome
        sits over in "Detail 2".  "Shot" on its own tells you nothing about
-       whether the puck hit the net, missed the net, or was blocked, so the
+       whether the puck hit the net, missed the net or was blocked, so the
        outcome goes into the event name:
 
            "Detail 2" On Net   ->  "Shot on Net"
@@ -809,8 +809,7 @@ def step_8_xg_models(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
        international games at 5v5, because that is the situation they are meant
        to describe:
 
-           xg_all_shots   trained on every shot attempt - on net, missed,
-                          blocked, and goals
+           xg_all_shots   trained on every shot attempt - on net, missed, blocked and goals
            xg_on_net      trained only on shots that reached the net - saved
                           shots and goals
 
@@ -914,7 +913,7 @@ def step_8_xg_models(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
                     _model_record(
                         "all_shots",
                         "xg_all_shots",
-                        "Every shot attempt: on net, missed, blocked, and goals",
+                        "Every shot attempt: on net, missed, blocked and goals",
                         all_shots_model,
                         features[trained_on_all],
                         is_goal[trained_on_all],

@@ -28,7 +28,7 @@
   The all-shots model learned from {{ "{:,}".format(models.models[0].rows) }} shots and
   {{ models.models[0].goals }} goals. Thirty goals spread across four inputs is not much
   for a model to work with, so the numbers below show it has picked up something
-  real &mdash; not that it measures shot quality precisely. Small differences
+  real - not that it measures shot quality precisely. Small differences
   between players should not be read as meaningful.
 </div>
 
@@ -83,7 +83,7 @@
 <p class="prose">
   Both are trained only on the international games at 5v5, and only those rows
   are given a value. The models say nothing about a college game or a power play
-  &mdash; that is deliberate, rather than guessing at situations they were never
+  - that is deliberate, rather than guessing at situations they were never
   built for.
 </p>
 
@@ -138,7 +138,7 @@
 <p class="prose">
   Because the inputs are standardised, the weights can be compared with each
   other: a larger number means the model leans on that input more. The sign is
-  the direction &mdash; distance is negative because a shot from further out is
+  the direction - distance is negative because a shot from further out is
   less likely to go in, and the other three are positive.
 </p>
 {% endblock %}

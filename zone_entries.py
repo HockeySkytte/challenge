@@ -51,7 +51,7 @@ def y_band(y: float) -> str:
 
 
 def population(frame: pd.DataFrame) -> pd.DataFrame:
-    """International games, at 5v5, and only zone entries."""
+    """International games, at 5v5 and only zone entries."""
     situations = possession_values.international_five_on_five(frame)
     return situations[situations["event"] == "Zone Entry"]
 

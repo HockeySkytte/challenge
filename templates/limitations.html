@@ -47,7 +47,7 @@
     {{ totals.players }} players and {{ totals.goals }} goals in the whole file,
     with {{ "{:,}".format(totals.shot_attempts) }} shot attempts to look at.
     Both xG models are fitted on the same {{ totals.training_goals }} goals
-    &mdash; the ones scored at 5v5 in the international games. Every breakdown
+    - the ones scored at 5v5 in the international games. Every breakdown
     thins out from there: of the {{ "{:,}".format(totals.windows) }} possession
     windows behind the Possession Values page, only
     {{ "{:,}".format(totals.windows_with_shot) }} contain a shot attempt at all.
@@ -57,9 +57,9 @@
 
   <li>
     <strong>A possession has a beginning, but no recorded end.</strong> The file
-    marks where and when a player's possession <em>starts</em> &mdash; a
+    marks where and when a player's possession <em>starts</em> - a
     <code>Puck Recovery</code>, a <code>Reception</code> or a
-    <code>Takeaway</code> &mdash; but nothing marks where or when it ends. There
+    <code>Takeaway</code> - but nothing marks where or when it ends. There
     is no possession-end event, and the nearest proxy, the moment the other team
     next gains the puck, cannot tell a clean possession from one interrupted by a
     whistle.
@@ -72,14 +72,14 @@
 
   <li>
     <strong>There is no shift data.</strong> The file records <em>how many</em>
-    skaters were on the ice for each event &mdash; that is where
+    skaters were on the ice for each event - that is where
     <code>strength_state</code> comes from, and it is what makes the 5v5
-    filtering on the other pages possible &mdash; but not <em>who</em> they were.
+    filtering on the other pages possible - but not <em>who</em> they were.
     Only the players directly involved in an event are ever named.
     <br />
     That rules out on-ice analytics entirely. Anything of the form "how did this
-    player's team do while he was on the ice" &mdash; on-ice corsi, on-ice
-    expected goals, line combinations, deployment &mdash; cannot be built from
+    player's team do while he was on the ice" - on-ice corsi, on-ice
+    expected goals, line combinations, deployment - cannot be built from
     this file, because the other skaters are anonymous.
   </li>
 </ul>
@@ -95,10 +95,9 @@
 <ul class="prose-list">
   <li>
     <strong>Where the data lives.</strong> The app reads one CSV. For a frozen
-    tournament of this size that is the right call: it is simple, it travels with
-    the code, and there is nothing to run or pay for.
+    tournament of this size that is the right call: it is simple, it travels with the code and there is nothing to run or pay for.
     <br />
-    A live system would keep the events in a database instead &mdash; Postgres,
+    A live system would keep the events in a database instead - Postgres,
     either managed (Supabase, Neon, RDS) or on a server you control. That buys
     three things a file cannot. <em>Indexes</em>, so filtering hundreds of
     thousands of rows by team, player and strength state stays fast as the table
@@ -116,8 +115,8 @@
     by hand, which is fine for a dataset that never changes.
     <br />
     If games arrived daily it would become a scheduled job: pull the new events,
-    run the same cleaning steps, load them, and refresh whatever is cached.
-    GitHub Actions on a cron schedule is the cheapest way to start &mdash; a
+    run the same cleaning steps, load them and refresh whatever is cached.
+    GitHub Actions on a cron schedule is the cheapest way to start - a
     workflow that runs the pipeline on a timer and loads the result. A larger
     system would more likely run it on the server itself, so the load happens
     next to the database, but the shape is the same either way.
@@ -130,7 +129,7 @@
 
   <li>
     <strong>Who can see it.</strong> The current gate is one shared password. It
-    answers "may this person look at all?" and nothing finer &mdash; everyone
+    answers "may this person look at all?" and nothing finer - everyone
     holding it sees everything, including the pages they have no use for.
     <br />
     Real access would be per role, and the roles here are fairly obvious:
@@ -145,7 +144,7 @@
     <tbody>
       <tr>
         <td class="left"><strong>Players</strong></td>
-        <td class="left">Their own numbers &mdash; a read-only view of their own shifts, shots and possession value. Not other players', and probably not the team-wide maps.</td>
+        <td class="left">Their own numbers - a read-only view of their own shifts, shots and possession value. Not other players', and probably not the team-wide maps.</td>
       </tr>
       <tr>
         <td class="left"><strong>Coaches</strong></td>
@@ -153,7 +152,7 @@
       </tr>
       <tr>
         <td class="left"><strong>Analysts</strong></td>
-        <td class="left">Everything a coach sees, plus the pipeline: re-running the cleaning, adjusting the models, and exporting the underlying data.</td>
+        <td class="left">Everything a coach sees, plus the pipeline: re-running the cleaning, adjusting the models and exporting the underlying data.</td>
       </tr>
     </tbody>
   </table>
@@ -161,15 +160,14 @@
 
 <p class="prose">
   That needs real accounts rather than one password: a users table, hashed
-  passwords, a session per visitor, and a role check on each route. The useful
-  part is that the code already draws that line in one place &mdash; every route
-  goes through the same gate &mdash; so it is a change to the gate rather than to
+  passwords, a session per visitor and a role check on each route. The useful
+  part is that the code already draws that line in one place - every route
+  goes through the same gate - so it is a change to the gate rather than to
   the pages.
 </p>
 
 <p class="prose">
   None of this changes the analysis. The maps, the models and the rates would all
-  be the same; what changes is where the data lives, how it gets there, and who
-  is allowed to see it.
+  be the same; what changes is where the data lives, how it gets there and who is allowed to see it.
 </p>
 {% endblock %}

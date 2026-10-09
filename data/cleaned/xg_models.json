@@ -9,7 +9,7 @@
     {
       "key": "all_shots",
       "column": "xg_all_shots",
-      "trained_on": "Every shot attempt: on net, missed, blocked, and goals",
+      "trained_on": "Every shot attempt: on net, missed, blocked and goals",
       "rows": 944,
       "goals": 30,
       "auc": 0.858,

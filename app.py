@@ -112,8 +112,7 @@ def create_app(config: Config | None = None) -> Flask:
     def page_data():
         """Load the data and apply the slicers.
 
-        Returns the dataset, the values each slicer can offer, the slicers as
-        chosen, and the rows that survived them.
+        Returns the dataset, the values each slicer can offer, the slicers as chosen and the rows that survived them.
         """
         dataset = data_source.load(config)
         selected, available = data_source.resolve(dataset, request.args)
